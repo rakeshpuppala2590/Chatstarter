@@ -22,9 +22,19 @@ import { useQuery } from "convex/react";
 import { PlusIcon, User2Icon } from "lucide-react";
 import Link from "next/link";
 import { api } from "../../../../convex/_generated/api";
+import { NewDirectMessage } from "./new-direct-message";
+import { usePathname } from "next/navigation";
+
+const useTestDirectMessages = () => {
+  const user = useQuery(api.functions.user.get);
+  if (!user) return [];
+  return [user, user, user];
+};
 
 export function DashboardSidebar() {
   const user = useQuery(api.functions.user.get);
+  const directMessages = useTestDirectMessages();
+  const pathname = usePathname();
   if (!user) return null;
   return (
     <Sidebar>
@@ -33,8 +43,8 @@ export function DashboardSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href={"/friends"}>
+                <SidebarMenuButton asChild isActive={pathname === "/"}>
+                  <Link href={"/"}>
                     <User2Icon></User2Icon>Friends
                   </Link>
                 </SidebarMenuButton>
@@ -43,10 +53,25 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
           <SidebarGroup>
             <SidebarGroupLabel>Direct Messages</SidebarGroupLabel>
-            <SidebarGroupAction>
-              <PlusIcon />
-              <span className="sr-only">New Direct Message</span>
-            </SidebarGroupAction>
+            <NewDirectMessage />
+            <SidebarGroupContent>
+              {directMessages.map((message) => (
+                <SidebarMenuItem key={message._id}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === `/dms/$message._id`}
+                  >
+                    <Link href={`/dms/${message._id}`}>
+                      <Avatar className="size-6">
+                        <AvatarImage src={message.image}></AvatarImage>
+                        <AvatarFallback>{message.username[0]}</AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium">{message.username}</p>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarGroupContent>
           </SidebarGroup>
         </SidebarGroup>
       </SidebarContent>
